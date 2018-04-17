@@ -19,6 +19,7 @@ int cincoAbierto = 12;
 int cincoCerrado = 13;
 
 int n = 0;
+boolean isJustUpdate = false;
 
 String cache;
 
@@ -36,135 +37,79 @@ void setup() {
   pinMode(cincoAbierto, OUTPUT);
   pinMode(cincoCerrado, OUTPUT);
   pinMode(touchSensor, INPUT);
-  open();
-  delay(200);
-  close();
-  delay(200);
-  open();
-  delay(200);
-  close();
-  delay(200);
-  open();
-  delay(200);
-  close();
-  delay(200);
-  open();
+  start();
 }
 
 void loop() {
-  stationNumber = 0;
-  stationNumber = confirmacion();
-  if (stationNumber == 0) {
-    c++;
-    if (c == 10) {
-      Serial.println("8888888");
-      c = 0;
-    }
-    return;
-  }
 
-  if (stationNumber < 100) {
-    for (int i = 0; i <= 1000; i++) {
-      if (digitalRead(touchSensor) == HIGH) {
-        mandarDatos(stationNumber);
-        esperarRespuestaServidor(stationNumber);
-        break;
-      }
-      delay(100);
-    }
-  } else {
-    esperarRespuestaServidor(stationNumber);
-  }
-}
-
-void esperarRespuestaServidor(int estacion) {
-  delay(500);
-  for (int i = 0; i <= 100; i++) {
-    if (Serial.available()) {
+  while (Serial.available() > 0) {
+    char recieved = Serial.read();
+    //    if (recieved == 'a') {
+    //      isJustUpdate = true;
+    //    }
+    cache += recieved;
+    if (recieved == '\n' && !isJustUpdate)    {
+      stationNumber = cache.toInt();
       cache = "";
-      cache += Serial.read();
-      cache += Serial.read();
-      n = cache.toInt();
-      break;
+      cualAbrir(stationNumber);
+      mandarDatos(stationNumber);
     }
-    delay(500);
+    //    else if (recieved == '\n' && isJustUpdate) {
+    //      stationNumber = cache.substring(1).toInt();
+    //      cualAbrir(stationNumber);
+    //      isJustUpdate = false;
+    //      cache = "";
+    //    }
+
   }
-  if (n != 0) {
-    cualAbrir(estacion);
+  //  Por ahora es un solo sensor para todas las ciclas
+  //  la idea es que sea 1 por estación
+  if (digitalRead(touchSensor) == HIGH) {
+    Serial.println("b");
+    delay(1000);
   }
 }
 
-
-int confirmacion() {
-  int station;
-  delay(100);
-  for (int i = 0; i <= 10; i++) {
-    if (Serial.available()) {
-      cache = "";
-      cache += Serial.read();
-      cache += Serial.read();
-      station = cache.toInt();
-      return station;
-    }
-    delay(100);
-  }
-  return 0;
-}
-
-
-
-void mandarDatos(int estacion) {
-  Serial.println("b");
-  //  Serial.println(strID);
-  Serial.print(abs(estacion));
-  Serial.print("/");
-  Serial.print("1111");
-  Serial.print("/");
-  Serial.print("1111");
-  Serial.print("/");
-  Serial.println("1111");
-
-}
 
 void cualAbrir(int estacion) {
   switch (estacion) {
-    case 10:
+    case 1:
       digitalWrite(unoAbierto, LOW);
       digitalWrite(unoCerrado, HIGH);
       break;
-    case 100:
+    case -1:
       digitalWrite(unoAbierto, HIGH);
       digitalWrite(unoCerrado, LOW);
       break;
-    case 12:
+    case 2:
       digitalWrite(dosAbierto, LOW);
       digitalWrite(dosCerrado, HIGH);
       break;
-    case 120:
+    case -2:
       digitalWrite(dosAbierto, HIGH);
       digitalWrite(dosCerrado, LOW);
       break;
-    case 13:
+    case 3:
       digitalWrite(tresAbierto, LOW);
       digitalWrite(tresCerrado, HIGH);
       break;
-    case 130:
+    case -3:
       digitalWrite(tresAbierto, HIGH);
       digitalWrite(tresCerrado, LOW);
       break;
-    case 14:
+    case 4:
       digitalWrite(cuatroAbierto, LOW);
       digitalWrite(cuatroCerrado, HIGH);
       break;
-    case 140:
+    case -4:
       digitalWrite(cuatroAbierto, HIGH);
       digitalWrite(cuatroCerrado, LOW);
       break;
-    case 15:
+    case 5:
       digitalWrite(cincoAbierto, LOW);
       digitalWrite(cincoCerrado, HIGH);
       break;
-    case 150:
+    case -5:
       digitalWrite(cincoAbierto, HIGH);
       digitalWrite(cincoCerrado, LOW);
       break;
@@ -172,6 +117,39 @@ void cualAbrir(int estacion) {
       break;
   }
 }
+
+void mandarDatos(int estacion) {
+  Serial.print("a");
+  //  Serial.println(strID);
+  //  String myS = String(abs(estacion));
+  Serial.print(abs(estacion));
+  //  Serial.print(myS);
+  Serial.print("/");
+  Serial.print("1111");
+  Serial.print("/");
+  Serial.print("1111");
+  Serial.print("/");
+  Serial.println("1111");
+}
+
+
+
+void start() {
+  open();
+  delay(200);
+  close();
+  delay(200);
+  open();
+  delay(200);
+  close();
+  delay(200);
+  open();
+  delay(200);
+  close();
+  delay(200);
+  open();
+}
+
 
 void close() {
   digitalWrite(unoAbierto, LOW);
@@ -198,4 +176,3 @@ void open() {
   digitalWrite(cuatroCerrado, LOW);
   digitalWrite(cincoCerrado, LOW);
 }
-
